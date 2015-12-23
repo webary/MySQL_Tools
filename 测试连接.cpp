@@ -4,40 +4,41 @@
 #include <string.h>
 #pragma comment( lib, "libmysql.lib")
 
-int main() {
-/// Àı×Ó1
-    puts("²âÊÔ1...(Á´½Ó)");
-    //MYSQL¾ä±ú   (ÈÎºÎÒ»¸ömysql²Ù×÷¶¼ÊÇ»ùÓÚMYSQLÕâ¸ö¾ä±úÀ´²Ù×÷µÄ)
-    MYSQL* link_ = mysql_init(NULL);             //³õÊ¼»¯MYSQL¾ä±ú
-	//ÉèÖÃ³¬Ê±Ê±¼ä(Á´½Ó³¬Ê±Ê±¼ä£¬²éÑ¯³¬Ê±Ê±¼ä£¬Ğ´Êı¾İ¿â³¬Ê±Ê±¼ä)
-    int  timeout =  3;                      //³¬Ê±Ê±¼äÉèÖÃÎª3Ãë
+int main()
+{
+/// ä¾‹å­1
+    puts("æµ‹è¯•1...(é“¾æ¥)");
+    //MYSQLå¥æŸ„   (ä»»ä½•ä¸€ä¸ªmysqlæ“ä½œéƒ½æ˜¯åŸºäºMYSQLè¿™ä¸ªå¥æŸ„æ¥æ“ä½œçš„)
+    MYSQL* link_ = mysql_init(NULL);             //åˆå§‹åŒ–MYSQLå¥æŸ„
+    //è®¾ç½®è¶…æ—¶æ—¶é—´(é“¾æ¥è¶…æ—¶æ—¶é—´ï¼ŒæŸ¥è¯¢è¶…æ—¶æ—¶é—´ï¼Œå†™æ•°æ®åº“è¶…æ—¶æ—¶é—´)
+    int  timeout =  3;                      //è¶…æ—¶æ—¶é—´è®¾ç½®ä¸º3ç§’
     if(link_ != NULL) {
         mysql_options(link_,MYSQL_OPT_CONNECT_TIMEOUT,(const char *)&timeout);
-        //ÉèÖÃÁ´½Ó³¬Ê±Ê±¼ä.
+        //è®¾ç½®é“¾æ¥è¶…æ—¶æ—¶é—´.
         mysql_options(link_,MYSQL_OPT_READ_TIMEOUT,(const char *)&timeout);
-        //ÉèÖÃ²éÑ¯Êı¾İ¿â(select)³¬Ê±Ê±¼ä
+        //è®¾ç½®æŸ¥è¯¢æ•°æ®åº“(select)è¶…æ—¶æ—¶é—´
         mysql_options(link_,MYSQL_OPT_WRITE_TIMEOUT,(const char *)&timeout);
-        //ÉèÖÃĞ´Êı¾İ¿â(update,delect,insert,replaceµÈ)µÄ³¬Ê±Ê±¼ä¡£
+        //è®¾ç½®å†™æ•°æ®åº“(update,delect,insert,replaceç­‰)çš„è¶…æ—¶æ—¶é—´ã€‚
     }
-	//ÕæÕı½¨Á¢mysqlÁ´½Ó
-    char  host_name[1024] = "localhost";		//mysql·şÎñÆ÷µÄIP
-    char  user_name[1024] = "root";				//ÓÃ»§Ãû
-    char  user_password[1024] = "123456";		///ÃÜÂë		ĞèÒª¸ÄÎª×Ô¼ºµÄÃÜÂë
-    char  server_name[1024] = "test";			///Êı¾İ¿âÃû	ĞèÒª¸ÄÎª×Ô¼ºµÄÊı¾İ¿âÃû
-    unsigned short host_port = 3306;			//·şÎñÆ÷¶Ë¿Ú
+    //çœŸæ­£å»ºç«‹mysqlé“¾æ¥
+    char  host_name[1024] = "localhost";		//mysqlæœåŠ¡å™¨çš„IP
+    char  user_name[1024] = "root";				//ç”¨æˆ·å
+    char  user_password[1024] = "123456";		///å¯†ç 		éœ€è¦æ”¹ä¸ºè‡ªå·±çš„å¯†ç 
+    char  server_name[1024] = "test";			///æ•°æ®åº“å	éœ€è¦æ”¹ä¸ºè‡ªå·±çš„æ•°æ®åº“å
+    unsigned short host_port = 3306;			//æœåŠ¡å™¨ç«¯å£
 
     if(!mysql_real_connect(link_,host_name,user_name,user_password,server_name,host_port,NULL,0)) {
-        //Ê§°Ü´¦Àí
-        int error_code  =  mysql_errno(link_);            //»ñÈ¡´íÎóÂë
-        //Õë¶Ô²»Í¬µÄ´íÎóÂëerror_code£¬»¹Ó¦¸Ã×ö²»Í¬µÄ´¦Àí
-        mysql_close(link_);                           //ÊÍ·Å¾ä±ú
-    	printf("Á´½Ó½¨Á¢Ê§°Ü! :%s\n",mysql_error(link_));
-    }else {
-    	puts("Á´½Ó½¨Á¢³É¹¦");
-        //Á´½Ó½¨Á¢³É¹¦£¬¿ÉÒÔ½øĞĞ¾ßÌåµÄ²Ù×÷(select   insert    delete   update  replaceµÈ£©
+        //å¤±è´¥å¤„ç†
+        int error_code  =  mysql_errno(link_);            //è·å–é”™è¯¯ç 
+        //é’ˆå¯¹ä¸åŒçš„é”™è¯¯ç error_codeï¼Œè¿˜åº”è¯¥åšä¸åŒçš„å¤„ç†
+        mysql_close(link_);                           //é‡Šæ”¾å¥æŸ„
+        printf("é“¾æ¥å»ºç«‹å¤±è´¥! :%s\n",mysql_error(link_));
+    } else {
+        puts("é“¾æ¥å»ºç«‹æˆåŠŸ");
+        //é“¾æ¥å»ºç«‹æˆåŠŸï¼Œå¯ä»¥è¿›è¡Œå…·ä½“çš„æ“ä½œ(select   insert    delete   update  replaceç­‰ï¼‰
     }
-/// ÏÂÃæÊÇµÚ¶ş¸öÀı×Ó£¬¿ÉÒÔºÍÉÏÃæÒ»¸öÀı×Ó·Ö¿ªÔËĞĞ
-    puts("\n²âÊÔ2...(Á´½Ó²¢²éÑ¯)");
+/// ä¾‹å­2ï¼Œå¯ä»¥å’Œä¸Šé¢ä¸€ä¸ªä¾‹å­åˆ†å¼€è¿è¡Œ
+    puts("\næµ‹è¯•2...(é“¾æ¥å¹¶æŸ¥è¯¢)");
     char SqlText[256] = "";
     MYSQL mysql;
     MYSQL_RES *res = NULL;
@@ -49,42 +50,42 @@ int main() {
 
     if ( !mysql_real_connect( &mysql, "localhost", "root",
                               "123456", "test", 3306, NULL, 0) ) {
-        puts("Êı¾İ¿âÁ¬½ÓÊ§°Ü");
+        puts("æ•°æ®åº“è¿æ¥å¤±è´¥");
         printf( "Error connecting to database: %s\n",mysql_error(&mysql));
         mysql_close( &mysql );
         return FALSE;
     } else {
-        puts("Êı¾İ¿âÁ¬½Ó³É¹¦");
-        mysql_query(&mysql,"set names 'GBK'");//ÉèÖÃ×Ö·û¼¯£¬·ÀÖ¹ÖĞÎÄÎŞ·¨Õı³£ÏÔÊ¾
+        puts("æ•°æ®åº“è¿æ¥æˆåŠŸ");
+        mysql_query(&mysql,"set names 'GBK'");//è®¾ç½®å­—ç¬¦é›†ï¼Œé˜²æ­¢ä¸­æ–‡æ— æ³•æ­£å¸¸æ˜¾ç¤º
         sprintf( SqlText, "insert into animals(name, kg) values ('chicken',6), ('dog', 4)");
-        if ( !mysql_query(&mysql, SqlText ) ) {        //insertÊ§°Ü
+        if ( !mysql_query(&mysql, SqlText ) ) {        //insertå¤±è´¥
             printf("Can't insert data to table: ");
             printf("%s\n", mysql_error(&mysql));
             mysql_close( &mysql );
             return FALSE;
         }
-        sprintf( SqlText, "select * from %s","stu");	///stuĞèÒª¸ÄÎª×Ô¼ºµÄÊı¾İ¿âÖĞ¶ÔÓ¦µÄ±íÃû
-        //½øĞĞÊı¾İ¼ìË÷
+        sprintf( SqlText, "select * from %s","stu");	///stuéœ€è¦æ”¹ä¸ºè‡ªå·±çš„æ•°æ®åº“ä¸­å¯¹åº”çš„è¡¨å
+        //è¿›è¡Œæ•°æ®æ£€ç´¢
         if ( !mysql_query(&mysql, SqlText )) {
             res = mysql_store_result( &mysql );
             i = (int)mysql_num_rows( res );
             printf("Query: %s\n%d records found:\n", SqlText, i );
-            //Êä³ö¸÷×Ö¶ÎÃû
+            //è¾“å‡ºå„å­—æ®µå
             for (; fd = mysql_fetch_field(res);)
                 printf("%-*s\t",50/mysql_num_fields(res), fd->name );
             puts("");
 
-            //´òÓ¡»ñÈ¡µÄÊı¾İ
-            MYSQL_ROW row; //Ò»¸öĞĞÊı¾İµÄÀàĞÍ°²È«(type-safe)µÄ±íÊ¾
-            while (row = mysql_fetch_row(res)) {    //»ñÈ¡ÏÂÒ»ĞĞ
+            //æ‰“å°è·å–çš„æ•°æ®
+            MYSQL_ROW row; //ä¸€ä¸ªè¡Œæ•°æ®çš„ç±»å‹å®‰å…¨(type-safe)çš„è¡¨ç¤º
+            while (row = mysql_fetch_row(res)) {    //è·å–ä¸‹ä¸€è¡Œ
                 for(int i=0; i<mysql_num_fields(res); i++)
                     printf("%-*s",80/mysql_num_fields(res),row[i]);
                 puts("");
             }
             mysql_free_result( res );
         } else {
-        	printf("²éÑ¯Ê§°Ü: %s\n",mysql_error(&mysql));
-        	puts("Çë¸ü¸Ä66ĞĞ±íÃû");
+            printf("æŸ¥è¯¢å¤±è´¥: %s\n",mysql_error(&mysql));
+            puts("è¯·æ›´æ”¹66è¡Œè¡¨å");
             mysql_close( &mysql );
             return FALSE;
         }
