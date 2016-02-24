@@ -238,13 +238,13 @@ bool DB_worker::ConnectDatabase()
 {
     int result = 1;
     mysql_init(&mysql);  //初始化mysql，连接数据库
-    //我没有设置MySQL密码,所以此处密码字段为空,可以根据具体环境修改参数
+    //此处密码字段可以根据具体环境修改参数
     if (!(sock = mysql_real_connect(&mysql, "localhost", "root", "123456", "test", 0, NULL, 0))) {
         printf( "Error connecting to database:%s\n", mysql_error(&mysql));
         result = 0;
     } else {
         printf("Connected successful\n");
-        int timeout =  2;         //设置查询超时时长
+        int timeout =  2;      //设置查询超时时长
         if(sock != NULL) {
             //设置链接超时时间.
             mysql_options(sock, MYSQL_OPT_CONNECT_TIMEOUT, (const char *)&timeout);
@@ -254,14 +254,19 @@ bool DB_worker::ConnectDatabase()
             mysql_options(sock, MYSQL_OPT_WRITE_TIMEOUT, (const char *)&timeout);
         }
         mysql_query(sock, "set names 'GBK'"); //设置字符集，防止中文无法正常显示
+        //抽取表头信息并保存到column[]
         sprintf(query, "select * from %s ", tableName);
         mysql_query(sock, query);
         res = mysql_store_result(sock);
         num_fields = mysql_num_fields(res);
-        //获取字段的信息
-        for(int i = 0; i < num_fields; i++)
-            strcpy(column[i], mysql_fetch_field(res)->name);
-        puts("");
+        //必须对返回的指针进行校验，否则如果没有这个表，会导致程序崩溃！！
+        //必须养成校验返回值的习惯，特别是对返回的是指针的情况
+        if(res != NULL) {
+            //获取各字段的内容
+            for(int i = 0; i < num_fields; i++)
+                strcpy(column[i], mysql_fetch_field(res)->name);
+            puts("");
+        }
     }
     puts("————————————————————\n");
     return result;
@@ -270,7 +275,7 @@ bool DB_worker::ConnectDatabase()
 bool DB_worker::QueryDatabase(const char*s, int show, const char* todo, int saveToFile)
 {
     sprintf(query, "%s from %s ", todo, tableName);
-    if(s)   // 连接上条件语句
+    if(s != NULL && s[0] != '\0') // 连接上条件语句
         strcat(query, s);
     if(mysql_query(sock, query)) {      //执行SQL语句
         printf("Query failed (%s)\n", mysql_error(sock));
