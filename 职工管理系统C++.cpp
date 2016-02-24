@@ -262,7 +262,7 @@ bool DB_worker::ConnectDatabase()
         //必须对返回的指针进行校验，否则如果没有这个表，会导致程序崩溃！！
         //必须养成校验返回值的习惯，特别是对返回的是指针的情况
         if(res != NULL) {
-            //获取各字段的内容
+            //获取各字段的表头名称
             for(int i = 0; i < num_fields; i++)
                 strcpy(column[i], mysql_fetch_field(res)->name);
             puts("");
