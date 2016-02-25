@@ -258,10 +258,10 @@ bool DB_worker::ConnectDatabase()
         sprintf(query, "select * from %s ", tableName);
         mysql_query(sock, query);
         res = mysql_store_result(sock);
-        num_fields = mysql_num_fields(res);
         //必须对返回的指针进行校验，否则如果没有这个表，会导致程序崩溃！！
         //必须养成校验返回值的习惯，特别是对返回的是指针的情况
         if(res != NULL) {
+            num_fields = mysql_num_fields(res);
             //获取各字段的表头名称
             for(int i = 0; i < num_fields; i++)
                 strcpy(column[i], mysql_fetch_field(res)->name);
