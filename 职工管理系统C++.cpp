@@ -60,7 +60,7 @@ DB_worker::~DB_worker()
 }
 void DB_worker::Choose()
 {
-    char c;
+    char c = 1;
     while(c != '0') {
         ShowAll(1);
         for(int j = 0; j < 65; j++)
