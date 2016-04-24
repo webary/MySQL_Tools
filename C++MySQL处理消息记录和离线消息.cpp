@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <ctime>
 #include <stdexcept>
 using namespace std;
 
@@ -26,6 +27,15 @@ public:
     vector<vector<string> > get(const string& user);
     //删除user的所有消息
     void remove(const string& user);
+
+    //获取当前日期和时间,用于更新日志
+    static string getTime()
+    {
+        char time_buf[64];
+        time_t now_time = time(NULL);
+        strftime(time_buf, 64, "%Y-%m-%d %H:%M:%S ", localtime(&now_time));
+        return time_buf;
+    }
 protected:
     //获取结果集
     vector<vector<string> > getResult(MYSQL_RES* res = NULL);
@@ -62,7 +72,7 @@ void DB_Msg::push(const string& to, const string& from, const string& msg)
     string sql = "insert into " + tbName + "(toUser,fromUser,msg) values('"
                  + to + "','" + from + "','" + msg + "')";
     if (fsLog)
-        fsLog << "\n>>>execute: " + sql << endl;
+        fsLog <<getTime()<< ">>>execute: " + sql << endl;
     if (mysql_query(conn, sql.c_str()) && fsLog) //执行sql语句成功返回0
         fsLog << "Failed to insert: " << mysql_error(conn) << endl;
 }
@@ -73,12 +83,11 @@ vector<vector<string> > DB_Msg::get(const string& user)
     string sql = "select fromUser,time,msg from " + tbName
                  + " where toUser='" + user + "'";
     if (fsLog)
-        fsLog << "\n>>>execute: " + sql << endl;
+        fsLog <<getTime() << ">>>execute: " + sql << endl;
     if (mysql_query(conn, sql.c_str()) == 0) {   //执行成功则把结果输出
         result = getResult();
-    } else {
-        if (fsLog)
-            fsLog << "Failed to search: " << mysql_error(conn) << endl;
+    } else if (fsLog) {
+        fsLog<< "Failed to search: " << mysql_error(conn) << endl;
     }
     return result;
 }
@@ -87,10 +96,9 @@ void DB_Msg::remove(const string& user)
 {
     string sql = "delete from " + tbName + " where toUser='" + user + "'";
     if (fsLog)
-        fsLog << ">>>execute: " << sql << endl;
-    if (mysql_query(conn, sql.c_str())) //执行sql语句
-        if (fsLog)
-            fsLog << "Failed to delete: " << mysql_error(conn) << endl;
+        fsLog <<getTime() << ">>>execute: " << sql << endl;
+    if (mysql_query(conn, sql.c_str()) && fsLog)
+        fsLog << "Failed to delete: " << mysql_error(conn) << endl;
 }
 //获取结果集
 vector<vector<string> > DB_Msg::getResult(MYSQL_RES* res)
@@ -148,7 +156,7 @@ protected:
                      "PRIMARY KEY (`id`)"
                      ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
         if (fsLog)
-            fsLog << ">>>execute: " << sql << endl;
+        fsLog << getTime() << ">>>execute: " << sql << endl;
         if (mysql_query(conn, sql.c_str()) && fsLog)
             fsLog << "Failed to create: " << mysql_error(conn) << endl;
     }
