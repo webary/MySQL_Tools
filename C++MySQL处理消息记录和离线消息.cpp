@@ -30,13 +30,7 @@ public:
     //根据指定sql语句删除相应记录
     inline void removeBySql(const string& sql);
     //获取当前日期和时间,用于更新日志
-    inline static string getTime()
-    {
-        char time_buf[64];
-        time_t now_time = time(NULL);
-        strftime(time_buf, 64, "%Y-%m-%d %H:%M:%S ", localtime(&now_time));
-        return time_buf;
-    }
+    inline static string getTime();
 protected:
     //获取结果集,将其保存到二维string数组中
     inline vector<vector<string> > getResult(MYSQL_RES* res = NULL);
@@ -99,6 +93,14 @@ void DB_Msg::removeBySql(const string& sql)
         fsLog << getTime() << ">>>execute: " << sql << endl;
     if (mysql_query(conn, sql.c_str()) && fsLog)
         fsLog << "Failed to delete: " << mysql_error(conn) << endl;
+}
+//获取当前日期和时间,用于更新日志
+inline string DB_Msg::getTime()
+{
+    char time_buf[64];
+    time_t now_time = time(NULL);
+    strftime(time_buf, 64, "%Y-%m-%d %H:%M:%S ", localtime(&now_time));
+    return time_buf;
 }
 //获取结果集,将其保存到二维string数组中
 vector<vector<string> > DB_Msg::getResult(MYSQL_RES* res)
