@@ -99,35 +99,40 @@ protected:
 DB_Msg::DB_Msg(const string& _tableName, const string& _logFileName)
     : tbName(_tableName)
 {
-    if (_logFileName != "")
+    if (_logFileName != "") {
         fsLog.open(_logFileName, std::ios::app);
+    }
+    createTable();
 }
 
 DB_Msg::~DB_Msg()
 {
-    if (fsLog)
+    if (fsLog) {
         fsLog.close();
+    }
 }
 //添加消息
 void DB_Msg::push(const string& to, const string& from, const string& msg)
 {
     string sql = "insert into " + tbName + "(toUser,fromUser,msg) values('"
-        + to + "','" + from + "','" + msg + "')";
-    if (fsLog)
+                 + to + "','" + from + "','" + msg + "')";
+    if (fsLog) {
         fsLog << getTime() << ">>>execute: " + sql << endl;
-    if (db_conn.query(sql) != 0 && fsLog) //执行sql语句失败返回非0
+    }
+    if (db_conn.query(sql) != 0 && fsLog) { //执行sql语句失败返回非0
         fsLog << "Failed to insert: " << db_conn.error() << endl;
+    }
 }
 //获取执行指定sql语句后的结果
 vector<vector<string> > DB_Msg::getBySql(const string& sql)
 {
     vector<vector<string> >result;
-    if (fsLog)
+    if (fsLog) {
         fsLog << getTime() << ">>>execute: " + sql << endl;
+    }
     if (db_conn.query(sql) == 0) {   //执行成功则把结果输出
         result = db_conn.getResult();
-    }
-    else if (fsLog) {
+    } else if (fsLog) {
         fsLog << "Failed to search: " << db_conn.error() << endl;
     }
     return result;
@@ -135,10 +140,12 @@ vector<vector<string> > DB_Msg::getBySql(const string& sql)
 //根据指定sql语句删除相应记录
 void DB_Msg::removeBySql(const string& sql)
 {
-    if (fsLog)
+    if (fsLog) {
         fsLog << getTime() << ">>>execute: " << sql << endl;
-    if (db_conn.query(sql) != 0 && fsLog)
+    }
+    if (db_conn.query(sql) != 0 && fsLog) {
         fsLog << "Failed to delete: " << db_conn.error() << endl;
+    }
 }
 //获取当前日期和时间,用于更新日志
 inline string DB_Msg::getTime()
@@ -151,18 +158,25 @@ inline string DB_Msg::getTime()
 //创建存储聊天记录的表
 void DB_Msg::createTable()
 {
+    db_conn.query("show tables like '" + tbName + "'");
+    auto res = db_conn.getResult();
+    if (res.size() > 0 && res[0][0] == tbName) {
+        return;
+    }
     string sql = "CREATE TABLE `" + tbName + "` ("
-        "`id` tinyint(4) NOT NULL AUTO_INCREMENT,"
-        "`toUser` varchar(20) NOT NULL,"
-        "`fromUser` varchar(20) NOT NULL,"
-        "`time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"
-        "`msg` text NOT NULL,"
-        "PRIMARY KEY (`id`)"
-        ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-    if (fsLog)
+                 "`id` tinyint(4) NOT NULL AUTO_INCREMENT,"
+                 "`toUser` varchar(20) NOT NULL,"
+                 "`fromUser` varchar(20) NOT NULL,"
+                 "`time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+                 "`msg` text NOT NULL,"
+                 "PRIMARY KEY (`id`)"
+                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+    if (fsLog) {
         fsLog << getTime() << ">>>execute: " << sql << endl;
-    if (db_conn.query(sql) != 0 && fsLog)
+    }
+    if (db_conn.query(sql) != 0 && fsLog) {
         fsLog << "Failed to create: " << db_conn.error() << endl;
+    }
 }
 
 
@@ -171,7 +185,7 @@ class DB_OfflineMsg : public DB_Msg {
 public:
     DB_OfflineMsg(const string& _tableName, const string _logFileName = "")
         : DB_Msg(_tableName, _logFileName)
-    { }
+    {}
     //从离线消息表中得到所有发送给user的消息,提取完后从数据库删除
     inline vector<vector<string> > pop(const string& user);
 };
@@ -180,7 +194,7 @@ public:
 vector<vector<string> > DB_OfflineMsg::pop(const string& user)
 {
     string sql = "select fromUser,time,msg from " + tbName
-        + " where toUser='" + user + "'";
+                 + " where toUser='" + user + "'";
     vector<vector<string> >result = getBySql(sql);
     //删除发给user的所有消息
     if (result.size() > 0) {
@@ -193,9 +207,11 @@ vector<vector<string> > DB_OfflineMsg::pop(const string& user)
 ///聊天记录消息管理类
 class DB_ChatLogMsg : public DB_Msg {
 public:
-    //用户名标识用户,日志文件名为空时不建立,前缀用于区分是在客户端还是服务器端
+    //用户名标识用户,日志文件名为空时不建立前缀用于区分是在客户端还是服务器端
     inline DB_ChatLogMsg(const string& _userName, const string _logFileName = "",
-                         const string& _prefix = "");
+                         const string& _prefix = "")
+        : DB_Msg(_prefix + "chat_log_" + _userName, _logFileName), userName(_userName)
+    {}
     //添加聊天记录消息
     inline void push(const string& userOthers, const string& msg, bool isReceived = 1);
     //添加收到的带时间记录的离线消息
@@ -208,23 +224,18 @@ public:
     inline void remove(const string& user);
     //获取与当前用户有聊天记录的用户列表
     inline vector<string> getUserWithChatLog();
+    //获取当前用户的用户名
+    inline const string& getUserName();
 protected:
     string userName; //该用户的用户名
 };
 
-DB_ChatLogMsg::DB_ChatLogMsg(const string& _userName, const string _logFileName,
-                             const string& _prefix)
-    : DB_Msg(_prefix + "chat_log_" + _userName, _logFileName), userName(_userName)
-{
-    createTable();
-}
 //添加聊天记录消息
 void DB_ChatLogMsg::push(const string& userOthers, const string& msg, bool isReceived)
 {
     if (isReceived) { //收到消息
         DB_Msg::push(userName, userOthers, msg);
-    }
-    else { //发送消息
+    } else { //发送消息
         DB_Msg::push(userOthers, userName, msg);
     }
 }
@@ -233,25 +244,28 @@ void DB_ChatLogMsg::pushOffline(const string & from, const string & msg,
                                 const string & _time)
 {
     string sql = "insert into " + tbName + "(toUser,fromUser,time,msg) values('"
-        + userName + "','" + from + "','" + _time + "','" + msg + "')";
-    if (fsLog)
+                 + userName + "','" + from + "','" + _time + "','" + msg + "')";
+    if (fsLog) {
         fsLog << getTime() << ">>>execute: " + sql << endl;
-    if (db_conn.query(sql) != 0 && fsLog) //执行sql语句失败返回非0
+    }
+    if (db_conn.query(sql) != 0 && fsLog) { //执行sql语句失败返回非0
         fsLog << "Failed to insert: " << db_conn.error() << endl;
+    }
 }
 //获取消息user发来的或发给user的所有消息
 vector<vector<string> > DB_ChatLogMsg::get(const string& user)
 {
     string sql = "select fromUser,time,msg from " + tbName +
-        " where toUser='" + user + "' or fromUser='" + user + "'";
+                 " where toUser='" + user + "' or fromUser='" + user + "'";
     return getBySql(sql);
 }
 //在该用户的聊天记录中查找与withUser的包含str的消息记录
 vector<vector<string> > DB_ChatLogMsg::find(const string& str, const string withUser)
 {
-    string sql = "select toUser,fromUser,time,msg from " + tbName + " where ";
-    if (withUser != "*")
+    string sql = "select fromUser,toUser,time,msg from " + tbName + " where ";
+    if (withUser != "*") {
         sql += "(toUser='" + withUser + "' or fromUser='" + withUser + "') and";
+    }
     sql += " msg like '%" + str + "%'";
     return getBySql(sql);
 }
@@ -259,8 +273,9 @@ vector<vector<string> > DB_ChatLogMsg::find(const string& str, const string with
 void DB_ChatLogMsg::remove(const string& user)
 {
     string sql = "delete from " + tbName;
-    if (user != "*")
+    if (user != "*") {
         sql += " where toUser='" + user + "' or fromUser='" + user + "'";
+    }
     removeBySql(sql);
 }
 //获取与当前用户有聊天记录的用户列表
@@ -269,19 +284,28 @@ vector<string> DB_ChatLogMsg::getUserWithChatLog()
     string sql = "select distinct toUser from " + tbName;
     auto users = getBySql(sql);
     std::unordered_map<string, bool> userList;
-    for (auto &elem : users)
+    for (auto &elem : users) {
         userList[elem[0]];
+    }
     sql = "select distinct fromUser from " + tbName;
     users = getBySql(sql);
-    for (auto &elem : users)
+    for (auto &elem : users) {
         userList[elem[0]];
+    }
     userList.erase(userList.find(userName)); //删除用户列表中的自己
     //将结果保存到vector<string>中返回
     vector<string> res;
     res.reserve(userList.size());
-    for (auto &it : userList)
+    for (auto &it : userList) {
         res.push_back(it.first);
+    }
     return res;
+}
+
+//获取当前用户的用户名
+inline const string& DB_ChatLogMsg::getUserName()
+{
+    return userName;
 }
 
 using std::cout;
@@ -293,17 +317,19 @@ inline std::ostream& operator<<(std::ostream& out, const vector<vector<string> >
         return out;
     }
     for (auto &it : res) { //显示提取出的离线消息内容
-        for (auto &elem : it)
+        for (auto &elem : it) {
             cout << elem << " ";
+        }
         cout << endl;
     }
     return out;
 }
 
+
 string DB_Connector::host_ = "localhost";
 string DB_Connector::user_ = "root";
 string DB_Connector::passwd_ = "123456";
-string DB_Connector::db_ = "test";
+string DB_Connector::db_ = "mfc_qq";
 
 using namespace std;
 int main()
@@ -321,11 +347,12 @@ int main()
     clMsg.push("John", "what are you doing!", 1);
     cout << clMsg.get("Miranda-lym") << endl;
 
-    cout << clMsg.find("hi") << endl;
+    cout << "find 'hi':\n" << clMsg.find("hi") << endl;
 
     auto userList = clMsg.getUserWithChatLog();
-    for (auto &elem : userList)
-        cout << elem << endl;
+    cout << "users that have chated with " <<clMsg.getUserName()<<endl;
+         for (auto &elem : userList)
+             cout << elem << endl;
     cin.get();
     return 0;
 }
