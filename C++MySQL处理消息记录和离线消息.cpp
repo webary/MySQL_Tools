@@ -46,7 +46,7 @@ DB_Connector::~DB_Connector()
 }
 
 //执行sql语句,成功则返回0,失败返回非0
-int DB_Connector::query(const string & sql)
+int DB_Connector::query(const string& sql)
 {
     return mysql_query(mysql, sql.c_str());
 }
@@ -62,6 +62,8 @@ vector<vector<string> > DB_Connector::getResult()
 {
     vector<vector<string> >result;
     MYSQL_RES* res = mysql_store_result(mysql);
+    if (res == NULL)
+        return result;
     unsigned num = mysql_num_fields(res); //结果集的列数
     for (MYSQL_ROW row; (row = mysql_fetch_row(res)) != NULL;) {
         result.push_back(vector<string>(num));
@@ -219,7 +221,7 @@ public:
     //获取消息user发来的或发给user的所有消息
     inline vector<vector<string> > get(const string& user);
     //在该用户的聊天记录中查找与withUser的包含str的消息记录
-    inline vector<vector<string> > find(const string& str, const string withUser = "*");
+    inline vector<vector<string> > find(const string& str, const string& withUser = "*");
     //根据传递的用户名删除与对应用户的聊天记录,传入"*"则删除所有记录
     inline void remove(const string& user);
     //获取与当前用户有聊天记录的用户列表
@@ -240,8 +242,8 @@ void DB_ChatLogMsg::push(const string& userOthers, const string& msg, bool isRec
     }
 }
 //添加收到的带时间记录的离线消息
-void DB_ChatLogMsg::pushOffline(const string & from, const string & msg,
-                                const string & _time)
+void DB_ChatLogMsg::pushOffline(const string& from, const string& msg,
+                                const string& _time)
 {
     string sql = "insert into " + tbName + "(toUser,fromUser,time,msg) values('"
                  + userName + "','" + from + "','" + _time + "','" + msg + "')";
@@ -260,7 +262,7 @@ vector<vector<string> > DB_ChatLogMsg::get(const string& user)
     return getBySql(sql);
 }
 //在该用户的聊天记录中查找与withUser的包含str的消息记录
-vector<vector<string> > DB_ChatLogMsg::find(const string& str, const string withUser)
+vector<vector<string> > DB_ChatLogMsg::find(const string& str, const string& withUser)
 {
     string sql = "select fromUser,toUser,time,msg from " + tbName + " where ";
     if (withUser != "*") {
